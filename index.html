@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Chatbot</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            background-color: #f4f4f4;
+        }
+        #chat { 
+            width: 100%; 
+            max-width: 500px; 
+            margin: auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button { 
+            padding: 10px; 
+            margin: 5px; 
+            width: 90%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF; 
+            color: white; 
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+        }
+        ul {
+            text-align: left;
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #f8f9fa;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <h2>Google Sheets Chatbot</h2>
+    <div id="chat">
+        <input type="text" id="question" placeholder="Ask something..." />
+        <button onclick="askChatbot()">Ask</button>
+        <p id="response">Waiting for your question...</p>
+    </div>
+
+  <script>
+    function askChatbot() {
+        var question = document.getElementById("question").value.trim();
+        if (question === "") {
+            document.getElementById("response").innerText = "Please enter a question.";
+            return;
+        }
+        var url = "https://script.google.com/macros/s/AKfycbydA4nbaHWNDXX5BpR4LnveyCCmDAHenpvfOfQUQGHD_c3gmm-VeAvRAA0TM21wzm3UVA/exec?q=" + encodeURIComponent(question);
+
+        console.log("Fetching from:", url);
+
+        document.getElementById("response").innerText = "Thinking...";
+
+        fetch(url, {
+            method: 'GET',
+            mode: 'cors',  // Allows cross-origin requests
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not OK');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Data received:", data);
+
+            var formattedResponse = formatResponse(data.response);
+            document.getElementById("response").innerHTML = formattedResponse;
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            document.getElementById("response").innerText = "Error fetching response: " + error;
+        });
+    }
+
+    function formatResponse(responseText) {
+        if (!responseText || responseText.trim() === "") {
+            return "<p>No relevant data found.</p>";
+        }
+
+        var parts = responseText.split("|");
+        var formattedText = "<ul>";
+        parts.forEach(function(part) {
+            formattedText += "<li>" + part.trim() + "</li>";
+        });
+        formattedText += "</ul>";
+        return formattedText;
+    }
+</script>
